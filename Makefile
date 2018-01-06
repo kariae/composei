@@ -5,11 +5,13 @@ GOCLEAN=$(GO) clean
 GOGET=$(GOV) fetch -v
 
 fetch:
-  @$(GOGET) github.com/urfave/cli
+	@$(GOGET) github.com/urfave/cli
+	@$(GOGET) gopkg.in/yaml.v2
+	@$(GOGET) github.com/fatih/color
 
 build:
-  @echo "start building..."
-  $(GOINSTALL)
-  @echo "Yay! build DONE!"
+	@echo "start building..."
+	$(GOINSTALL)
+	@echo "Yay! build DONE!"
 
 all: fetch build
