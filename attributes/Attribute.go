@@ -98,7 +98,7 @@ func InitServicesAttributes() []Attribute {
 		},
 		{
 			Name:             "external_links",
-			InputDescription: "Link to containers started outside this `docker-compose.yml` or even outside of Compose",
+			InputDescription: "Link to containers started outside this docker compose file or even outside of Compose",
 			Example:          "project_db_1:postgresql",
 			IsList:           true,
 			Category:         servicesCategory,

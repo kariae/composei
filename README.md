@@ -7,7 +7,7 @@
 
 
 
-Composei is an interactive command line tool build with golang that helps you create your `docker-compose.yml` file.
+Composei is an interactive command line tool build with golang that helps you create your docker compose file.
 
 Cause yes I'm lazy to remember all the possible options for each container xD
 

@@ -29,7 +29,7 @@ func ReadLine(message string, possibleInputs []string, acceptEmpty bool, helpMes
 		messageToDisplay = fmt.Sprintf("%s [%s]", message, possibleInputsString)
 	}
 
-	fmt.Print(fmt.Sprintf("%s: ", messageToDisplay))
+	fmt.Printf("%s: ", messageToDisplay)
 
 	input, _ := reader.ReadString('\n')
 	input = strings.Trim(input," \r\n")

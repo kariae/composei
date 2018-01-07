@@ -10,9 +10,25 @@ import (
 
 var GenerateCommand = cli.Command{
 	Name: "generate",
-	Usage: "Generate docker-compose.yml file",
+	Usage: "Generate docker compose file",
 	Aliases: []string{"g"},
 	Action: generate,
+	Flags: []cli.Flag {
+		cli.StringFlag{
+			Name: "compose-file, c",
+			Usage: "Specify an alternate Compose file",
+			Value: libs.ComposeFileName,
+		},
+		cli.StringFlag{
+			Name: "env-file, e",
+			Usage: "Specify an alternate environment file",
+			Value: libs.EnvFileName,
+		},
+		cli.BoolFlag{
+			Name: "no-env",
+			Usage: "Do not generate environment file",
+		},
+	},
 }
 
 var dockerCompose = libs.New()
@@ -21,19 +37,23 @@ func generate(c *cli.Context)  {
 	var err error
 	libs.PrintComposeiAsciiArt()
 
+	// Set compose and env file names
+	libs.ComposeFileName = c.String("compose-file")
+	libs.EnvFileName = c.String("env-file")
+
 	// Loading attributes
 	servicesAttributes := attributes.InitServicesAttributes()
 	networksAttributes := attributes.InitNetworksAttributes()
 	volumesAttributes  := attributes.InitVolumesAttributes()
 
-	// Check if `docker-compose.yml` already exists
+	// Check if compose file already exists
 	if libs.FileExists() {
-		fmt.Println("A `docker-compose.yml` file already exists in the current directory")
+		fmt.Printf("A `%s` file already exists in the current directory\n", libs.ComposeFileName)
 
 		replaceExisting := libs.ReadLine("Would you like to replace or edit it", []string{"r", "e"}, false, "")
 		switch replaceExisting {
 		case "r":
-			//Replacing old docker-compose.yml file
+			//Replacing old compose file
 			dockerCompose.CreateTopLevel("version", string(libs.Version))
 		case "e":
 			// Loading old source
@@ -49,8 +69,8 @@ func generate(c *cli.Context)  {
 	// Insert attributes
 	generateData(servicesAttributes, networksAttributes, volumesAttributes)
 
-	// Saving docker-compose.yml file
-	err = dockerCompose.Save()
+	// Saving docker compose file && generate environment file
+	err = dockerCompose.Save(c.Bool("no-env"))
 	if err != nil {
 		libs.ERROR(err.Error())
 	}
@@ -152,7 +172,7 @@ func getAttributeValues(attribute attributes.Attribute, possibleEntries map[stri
 				attributeName := attribute.Name
 
 				if possibleEntries[attribute.Name] != nil {
-					fmt.Println(fmt.Sprintf("%s:", attributeName))
+					fmt.Printf("%s:\n", attributeName)
 					for _, possibleEntry := range possibleEntries[attribute.Name] {
 						entry = libs.ReadLine(fmt.Sprintf("  - %s", possibleEntry), []string{}, true, attribute.GetDescription())
 						if entry != "" {

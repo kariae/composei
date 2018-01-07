@@ -1,42 +1,48 @@
 {
 	"comment": "",
-	"ignore": "test",
+	"ignore": "",
 	"package": [
 		{
-			"checksumSHA1": "p5z5hdUt68Z3tK7Is+yLGrCNzoA=",
+			"checksumSHA1": "YtcDWSOBq801CwMYM+XjwuFGULM=",
 			"path": "github.com/fatih/color",
 			"revision": "5df930a27be2502f99b292b7cc09ebad4d0891f4",
 			"revisionTime": "2017-09-26T11:14:11Z"
 		},
 		{
-			"checksumSHA1": "C8GaEQYPqB4ECXc6NYjSxZuUbSI=",
+			"checksumSHA1": "9v+snxyo+I0j004JkGC9VxKqMzU=",
 			"path": "github.com/mattn/go-colorable",
 			"revision": "586e6dcca296d085100876beb6dbf02287a247f7",
 			"revisionTime": "2017-12-29T09:55:07Z"
 		},
 		{
-			"checksumSHA1": "w5RcOnfv5YDr3j2bd1YydkPiZx4=",
+			"checksumSHA1": "qmf2OPIdr1nS6FGwGndELHFXHFU=",
 			"path": "github.com/mattn/go-isatty",
 			"revision": "6ca4dbf54d38eea1a992b3c722a76a5d1c4cb25c",
 			"revisionTime": "2017-11-07T05:05:31Z"
 		},
 		{
-			"checksumSHA1": "QptO0AepiRNzesHimvUfeXmJp/c=",
+			"checksumSHA1": "QZMK12d5wOHg/T3r/VJEmHLTQF8=",
 			"path": "github.com/urfave/cli",
-			"revision": "39908eb08fee7c10d842622a114a5c133fb0a3c6",
-			"revisionTime": "2017-12-12T16:34:29Z"
+			"revision": "75104e932ac2ddb944a6ea19d9f9f26316ff1145",
+			"revisionTime": "2018-01-06T19:10:48Z"
 		},
 		{
-			"checksumSHA1": "ZwEZK9AUUeSqDnWUO4fDc9rwTIA=",
+			"checksumSHA1": "7yz6q6MIaQ3Y2dZipjbnzIFX3gY=",
 			"path": "golang.org/x/sys/unix",
-			"revision": "83801418e1b59fb1880e363299581ee543af32ca",
-			"revisionTime": "2017-12-22T10:59:23Z"
+			"revision": "dd9ec17814d5b1de388ebe438ec013d57d8b3779",
+			"revisionTime": "2018-01-06T05:11:39Z"
 		},
 		{
-			"checksumSHA1": "fRgp9UZPllOlkPssv7frzQx4z9A=",
+			"checksumSHA1": "538I8ghUdvZa25NxgMUDpq14Qic=",
+			"path": "gopkg.in/check.v1",
+			"revision": "20d25e2804050c1cd24a7eea1e7a6447dd0e74ec",
+			"revisionTime": "2016-12-08T18:13:25Z"
+		},
+		{
+			"checksumSHA1": "+zaZTCpiD6H+mQfobOHmyWltRFM=",
 			"path": "gopkg.in/yaml.v2",
-			"revision": "287cf08546ab5e7e37d55a84f7ed3fd1db036de5",
-			"revisionTime": "2017-11-16T09:02:43Z"
+			"revision": "0e4404da71227dcc02fb1deee803d93e86d08f72",
+			"revisionTime": "2018-01-04T19:57:22Z"
 		}
 	],
 	"rootPath": "github.com/kariae/composei"
