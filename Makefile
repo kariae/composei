@@ -8,6 +8,7 @@ fetch:
 	@$(GOGET) github.com/urfave/cli
 	@$(GOGET) gopkg.in/yaml.v2
 	@$(GOGET) github.com/fatih/color
+	@$(GOGET) github.com/coreos/go-semver/semver
 
 build:
 	@echo "start building..."

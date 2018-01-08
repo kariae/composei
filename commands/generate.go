@@ -162,6 +162,7 @@ func generateTopLevelAttributes(topLevel string, topLevelAttrs []attributes.Attr
 
 	return topLevelEntryName, attributesData
 }
+
 func getAttributeValues(attribute attributes.Attribute, possibleEntries map[string][]string) interface{} {
 	Loop:
 		for {
