@@ -1,4 +1,6 @@
-package attributes
+// Manage docker-compose's configuration attributes.
+
+package compose
 
 import (
 	"fmt"
@@ -8,6 +10,7 @@ const servicesCategory = 1
 const networksCategory = 2
 const volumesCategory  = 3
 
+// An Attribute represents a docker-compose's configuration attribute
 type Attribute struct {
 	Name             string
 	InputDescription string
@@ -18,15 +21,7 @@ type Attribute struct {
 	PossibleValues   []string
 }
 
-func (attribute Attribute) DisplayHelp() string {
-	example := ""
-	if attribute.Example != "" {
-		example = fmt.Sprintf("(Example: %s)", attribute.Example)
-	}
-
-	return fmt.Sprintf("%s %s.", attribute.InputDescription, example)
-}
-
+// InitServicesAttributes create the docker-compose services attributes Composei accepts
 func InitServicesAttributes() []Attribute {
 	return []Attribute{
 		{
@@ -112,6 +107,7 @@ func InitServicesAttributes() []Attribute {
 	}
 }
 
+// InitNetworksAttributes create the docker-compose networks attributes Composei accepts
 func InitNetworksAttributes() []Attribute {
 	return []Attribute{
 		{
@@ -141,15 +137,7 @@ func InitNetworksAttributes() []Attribute {
 	}
 }
 
-func (attribute *Attribute) GetDescription() string {
-	example := ""
-	if attribute.Example != "" {
-		example = fmt.Sprintf("(Example: %s)", attribute.Example)
-	}
-
-	return fmt.Sprintf("%s %s.", attribute.InputDescription, example)
-}
-
+// InitVolumesAttributes create the docker-compose volumes attributes Composei accepts
 func InitVolumesAttributes() []Attribute {
 	return []Attribute{
 		{
@@ -176,4 +164,24 @@ func InitVolumesAttributes() []Attribute {
 			Category:         volumesCategory,
 		},
 	}
+}
+
+// Display help message if exists for an attribute
+func (attribute Attribute) DisplayHelp() string {
+	example := ""
+	if attribute.Example != "" {
+		example = fmt.Sprintf(" (Example: %s)", attribute.Example)
+	}
+
+	return fmt.Sprintf("%s%s", attribute.InputDescription, example)
+}
+
+// GetDescription gets attribute description with example
+func (attribute *Attribute) GetDescription() string {
+	example := ""
+	if attribute.Example != "" {
+		example = fmt.Sprintf("(Example: %s)", attribute.Example)
+	}
+
+	return fmt.Sprintf("%s %s.", attribute.InputDescription, example)
 }
