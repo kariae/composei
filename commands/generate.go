@@ -4,8 +4,12 @@ import (
 	"github.com/urfave/cli"
 	"fmt"
 	"gopkg.in/yaml.v2"
-	"github.com/kariae/composei/libs"
-	"github.com/kariae/composei/attributes"
+	"github.com/kariae/composei/reader"
+	"github.com/kariae/composei/compose"
+	"github.com/kariae/composei/logger"
+	"bufio"
+	"os"
+	"github.com/kariae/composei/env"
 )
 
 var GenerateCommand = cli.Command{
@@ -15,14 +19,12 @@ var GenerateCommand = cli.Command{
 	Action: generate,
 	Flags: []cli.Flag {
 		cli.StringFlag{
-			Name: "compose-file, c",
+			Name:  "compose-file, c",
 			Usage: "Specify an alternate Compose file",
-			Value: libs.ComposeFileName,
 		},
 		cli.StringFlag{
-			Name: "env-file, e",
+			Name:  "env-file, e",
 			Usage: "Specify an alternate environment file",
-			Value: libs.EnvFileName,
 		},
 		cli.BoolFlag{
 			Name: "no-env",
@@ -31,139 +33,157 @@ var GenerateCommand = cli.Command{
 	},
 }
 
-var dockerCompose = libs.New()
-
+// generate is the main command of Composei that generates docker-compose files
 func generate(c *cli.Context)  {
 	var err error
-	libs.PrintComposeiAsciiArt()
+	var dockerCompose = compose.New()
+	r := bufio.NewReader(os.Stdin)
+	PrintComposeiAsciiArt()
 
 	// Set compose and env file names
-	libs.ComposeFileName = c.String("compose-file")
-	libs.EnvFileName = c.String("env-file")
+	if c.String("compose-file") != "" {
+		dockerCompose.Filename = c.String("compose-file")
+	}
+	if c.String("env-file") != "" {
+		dockerCompose.EnvFilename = c.String("env-file")
+	}
 
 	// Loading attributes
-	servicesAttributes := attributes.InitServicesAttributes()
-	networksAttributes := attributes.InitNetworksAttributes()
-	volumesAttributes  := attributes.InitVolumesAttributes()
+	servicesAttributes := compose.InitServicesAttributes()
+	networksAttributes := compose.InitNetworksAttributes()
+	volumesAttributes  := compose.InitVolumesAttributes()
 
 	// Check if compose file already exists
-	if libs.FileExists() {
-		fmt.Printf("A `%s` file already exists in the current directory\n", libs.ComposeFileName)
+	if dockerCompose.FileExists() {
+		fmt.Printf("A `%s` file already exists in the current directory\n", dockerCompose.Filename)
 
-		replaceExisting := libs.ReadLine("Would you like to replace or edit it", []string{"r", "e"}, false, "")
+		replaceExisting := reader.ReadLine(r, "Would you like to replace or edit it", []string{"r", "e"}, false, "")
 		switch replaceExisting {
 		case "r":
 			//Replacing old compose file
-			dockerCompose.CreateTopLevel("version", string(libs.Version))
+			dockerCompose.CreateTopLevel("version", string(dockerCompose.Version))
 		case "e":
 			// Loading old source
-			dockerCompose, err = libs.LoadFile()
+			err = dockerCompose.LoadFile()
 			if err != nil {
-				libs.ERROR(err.Error())
+				logger.ERROR(err.Error())
 			}
 		}
 	} else {
-		dockerCompose.CreateTopLevel("version", string(libs.Version))
+		dockerCompose.CreateTopLevel("version", string(dockerCompose.Version))
 	}
 
 	// Insert attributes
-	generateData(servicesAttributes, networksAttributes, volumesAttributes)
+	generateData(r, dockerCompose, servicesAttributes, networksAttributes, volumesAttributes)
 
 	// Saving docker compose file && generate environment file
-	err = dockerCompose.Save(c.Bool("no-env"))
+	err = dockerCompose.Save(r, c.Bool("no-env"))
 	if err != nil {
-		libs.ERROR(err.Error())
+		logger.ERROR(err.Error())
 	}
+
+	// Display generation message
+	logger.Green(`Congratulation your docker compose configuration file is created.`)
 }
 
-func generateData(servicesAttrs []attributes.Attribute, networksAttrs []attributes.Attribute, volumesAttrs []attributes.Attribute) {
-	var addService string
-	var addNetwork string
-	var addVolume string
+// generateData starts the process of generating top levels attributes
+// the attributes data is given by user inputs
+func generateData(r reader.InputReader, dockerCompose *compose.DockerCompose, servicesAttrs []compose.Attribute, networksAttrs []compose.Attribute, volumesAttrs []compose.Attribute) {
+	//var addService string
+	//var addNetwork string
+	//var addVolume string
 
-	libs.INFO("Enter '-h' anytime to get a short description of the given attribute\n")
+	logger.INFO("Enter '-h' anytime to get a short description of the given attribute\n")
 
 	// Services
 	for {
-		addService = libs.ReadLine("Add new service", []string{libs.YesChoice, libs.NoChoice}, false, "")
-		if addService == libs.NoChoice {
+		addService := reader.ReadLine(r, "Add new service", []string{reader.YesChoice, reader.NoChoice}, false, "")
+		if addService == reader.NoChoice {
 			break
 		} else {
 			isValid := false
-			serviceName, serviceAttributes := generateTopLevelAttributes("service", servicesAttrs)
+			serviceName, serviceAttributes := generateTopLevelAttributes(r, "service", servicesAttrs)
 			// Check that at least the service has image or build attribute
 			for _, attr := range serviceAttributes {
 				if attr.Key == "build" || attr.Key == "image" {
 					isValid = true
+					break
 				}
 			}
 
 		    //	Service should have at least image or build context specified
 			if isValid {
-				dockerCompose.AddService(yaml.MapItem{Key:serviceName, Value:serviceAttributes})
+				dockerCompose.AddService(r, yaml.MapItem{Key:serviceName, Value:serviceAttributes})
 			} else {
-				libs.ERROR(fmt.Sprintf("Service %s has neither an image nor a build context specified. At least one must be provided.", serviceName))
+				logger.ERROR(fmt.Sprintf("Service %s has neither an image nor a build context specified. At least one must be provided.", serviceName))
 			}
 		}
 	}
 
 	// Networks
 	for {
-		addNetwork = libs.ReadLine("Add new network", []string{libs.YesChoice, libs.NoChoice}, false, "")
-		if addNetwork == libs.NoChoice {
+		addNetwork := reader.ReadLine(r, "Add new network", []string{reader.YesChoice, reader.NoChoice}, false, "")
+		if addNetwork == reader.NoChoice {
 			break
 		} else {
 			var networkAttributes interface{}
-			networkName, attrs := generateTopLevelAttributes("network", networksAttrs)
+			networkName, attrs := generateTopLevelAttributes(r, "network", networksAttrs)
 			if len(attrs) == 0 {
 				networkAttributes = nil
 			} else {
 				networkAttributes = attrs
 			}
-			dockerCompose.AddNetwork(yaml.MapItem{Key:networkName, Value:networkAttributes})
+			dockerCompose.AddNetwork(r, yaml.MapItem{Key:networkName, Value:networkAttributes})
 		}
 	}
 
 	// Volumes
 	for {
-		addVolume = libs.ReadLine("Add new volume", []string{libs.YesChoice, libs.NoChoice}, false, "")
-		if addVolume == libs.NoChoice {
+		addVolume := reader.ReadLine(r, "Add new volume", []string{reader.YesChoice, reader.NoChoice}, false, "")
+		if addVolume == reader.NoChoice {
 			break
 		} else {
 			var volumeAttributes interface{}
-			volumeName, attrs := generateTopLevelAttributes("volume", volumesAttrs)
+			volumeName, attrs := generateTopLevelAttributes(r, "volume", volumesAttrs)
 			if len(attrs) == 0 {
 				volumeAttributes = nil
 			} else {
 				volumeAttributes = attrs
 			}
-			dockerCompose.AddVolume(yaml.MapItem{Key: volumeName, Value: volumeAttributes})
+			dockerCompose.AddVolume(r, yaml.MapItem{Key: volumeName, Value: volumeAttributes})
 		}
 	}
 }
 
-func generateTopLevelAttributes(topLevel string, topLevelAttrs []attributes.Attribute) (string, yaml.MapSlice) {
+// generateTopLevelAttributes generates attributes for given top level
+func generateTopLevelAttributes(r reader.InputReader, topLevel string, topLevelAttrs []compose.Attribute) (string, yaml.MapSlice) {
 	var attributesData yaml.MapSlice
 	possibleEntries := map[string][]string{}
-	topLevelEntryName := libs.ReadLine(fmt.Sprintf("Enter %s name", topLevel), []string{}, false, "")
+	topLevelEntryName := reader.ReadLine(r, fmt.Sprintf("Enter %s name", topLevel), []string{}, false, "")
+	assetsGetter := env.AssetsGetter{
+		GetterFunc: env.Asset,
+	}
 
 	for _, attribute := range topLevelAttrs {
-		attributeValues := getAttributeValues(attribute, possibleEntries)
+		attributeValues := getAttributeValues(r, attribute, possibleEntries)
 		if attributeValues != nil {
 			attributesData = append(attributesData, yaml.MapItem{Key: attribute.Name, Value: attributeValues})
 		}
 
 		if topLevel == "service" && attribute.Name == "image" && attributeValues != nil {
-			if possibleEnvVars := libs.GetPossibleEnvVars(attributeValues.(string)); len(possibleEnvVars) > 0 {
+			if possibleEnvVars := env.GetPossibleEnvVars(assetsGetter, attributeValues.(string)); len(possibleEnvVars) > 0 {
 				possibleEntries["environment"] = possibleEnvVars
 			}
 		}
+
+		// TODO: If volume/network added for a service, generate them automatically as possible entries for 'em.
 	}
 
 	return topLevelEntryName, attributesData
 }
 
-func getAttributeValues(attribute attributes.Attribute, possibleEntries map[string][]string) interface{} {
+// getAttributeValues get given attribute's value from user input
+func getAttributeValues(r reader.InputReader, attribute compose.Attribute, possibleEntries map[string][]string) interface{} {
 	Loop:
 		for {
 			if attribute.IsList {
@@ -175,7 +195,7 @@ func getAttributeValues(attribute attributes.Attribute, possibleEntries map[stri
 				if possibleEntries[attribute.Name] != nil {
 					fmt.Printf("%s:\n", attributeName)
 					for _, possibleEntry := range possibleEntries[attribute.Name] {
-						entry = libs.ReadLine(fmt.Sprintf("  - %s", possibleEntry), []string{}, true, attribute.GetDescription())
+						entry = reader.ReadLine(r, fmt.Sprintf("  - %s", possibleEntry), []string{}, true, attribute.GetDescription())
 						if entry != "" {
 							value = append(value, fmt.Sprintf("%s=%s", possibleEntry, entry))
 						}
@@ -185,10 +205,10 @@ func getAttributeValues(attribute attributes.Attribute, possibleEntries map[stri
 				}
 
 				for ok := true; ok; ok = entry != "" {
-					entry = libs.ReadLine(fmt.Sprintf("%s", attributeName), []string{}, true, attribute.GetDescription())
+					entry = reader.ReadLine(r, fmt.Sprintf("%s", attributeName), []string{}, true, attribute.GetDescription())
 					if entry == "-h" {
 						// HELP Message
-						libs.INFO(attribute.DisplayHelp())
+						logger.INFO(attribute.DisplayHelp())
 
 					} else if entry != "" {
 						value = append(value, entry)
@@ -201,10 +221,10 @@ func getAttributeValues(attribute attributes.Attribute, possibleEntries map[stri
 					return value
 				}
 			} else {
-				value := libs.ReadLine(fmt.Sprintf("%s", attribute.Name), []string{}, true, attribute.GetDescription())
+				value := reader.ReadLine(r, fmt.Sprintf("%s", attribute.Name), []string{}, true, attribute.GetDescription())
 				if value == "-h" {
 					// HELP Message
-					libs.INFO(attribute.DisplayHelp())
+					logger.INFO(attribute.DisplayHelp())
 					continue Loop
 				} else if value != "" {
 					return value
@@ -213,4 +233,22 @@ func getAttributeValues(attribute attributes.Attribute, possibleEntries map[stri
 			break
 		}
 	return nil
+}
+
+// PrintComposeiAsciiArt shows splash Ascii art
+func PrintComposeiAsciiArt() {
+	composei := `
+        +-------+         ____                                     _
+        | || || |        / ___|___  _ __ ___  _ __   ___  ___  ___(_)
+    +---+---+---+---+   | |   / _ \| '_ ` + "`" + ` _ \| '_ \ / _ \/ __|/ _ \ |
+    | || || | || || |   | |__| (_) | | | | | | |_) | (_) \__ \  __/ |
+    +-------+-------+    \____\___/|_| |_| |_| .__/ \___/|___/\___|_|
+                                             |_|
+
+                          By Zakariae Filali - 0.0.1
+                      https://github.com/kariae/composei
+
+
+`
+	fmt.Println(logger.Green(composei))
 }
