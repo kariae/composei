@@ -10,6 +10,7 @@ import (
 	"bufio"
 	"os"
 	"github.com/kariae/composei/env"
+	"github.com/kariae/composei/version"
 )
 
 var GenerateCommand = cli.Command{
@@ -83,7 +84,7 @@ func generate(c *cli.Context)  {
 	}
 
 	// Display generation message
-	logger.Green(`Congratulation your docker compose configuration file is created.`)
+	fmt.Println(logger.Green(`Congratulation your docker compose configuration file is created.`))
 }
 
 // generateData starts the process of generating top levels attributes
@@ -245,10 +246,10 @@ func PrintComposeiAsciiArt() {
     +-------+-------+    \____\___/|_| |_| |_| .__/ \___/|___/\___|_|
                                              |_|
 
-                          By Zakariae Filali - 0.0.1
+                          By Zakariae Filalis - %s
                       https://github.com/kariae/composei
 
 
 `
-	fmt.Println(logger.Green(composei))
+	fmt.Println(logger.Green(fmt.Sprintf(composei, version.Version.String())))
 }
