@@ -17,9 +17,9 @@ Cause I'm too lazy to remember all the possible options for each container xD
 </p>
 
 # Installation
-Run
-
-    go get -u github.com/kariae/composei
+- Download the latest relaese for your machine from the [releases page](https://github.com/kariae/composei/releases)
+- Extract the binary file into your bin path.
+- Enjoy creating docker-compose files. 
 
 # Usage
 
