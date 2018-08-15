@@ -4,17 +4,22 @@
     | || || | || || |   | |__| (_) | | | | | | |_) | (_) \__ \  __/ |
     +-------+-------+    \____\___/|_| |_| |_| .__/ \___/|___/\___|_|
                                              |_|
-                                             
+
 
 
 Composei is an interactive command line tool build with golang that helps you create your docker compose file.
 
 Cause I'm too lazy to remember all the possible options for each container xD
 
+# Demo
+<p align="center">
+    <img src="https://kariae.github.io/composei/demo.svg">
+</p>
+
 # Installation
-- Download the latest relaese for your machine from the [releases page](https://github.com/kariae/composei/releases)
-- Extract the binary file into your bin path.
-- Enjoy creating docker-compose files.
+Run
+
+    go get -u github.com/kariae/composei
 
 # Usage
 
