@@ -29,7 +29,12 @@ func ReadLine(reader InputReader, message string, possibleInputs []string, accep
 		messageToDisplay = fmt.Sprintf("%s [%s]", message, possibleInputsString)
 	}
 
-	fmt.Printf("%s: ", messageToDisplay)
+	// if not list
+	if messageToDisplay != "-" {
+		messageToDisplay = fmt.Sprintf("%s :", messageToDisplay)
+	}
+
+	fmt.Printf("%s ", messageToDisplay)
 
 	input, _ := reader.ReadString('\n')
 	input = strings.Trim(input," \r\n")

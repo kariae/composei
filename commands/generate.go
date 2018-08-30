@@ -205,8 +205,9 @@ func getAttributeValues(r reader.InputReader, attribute compose.Attribute, possi
 					attributeName = fmt.Sprintf("%s (other)", attributeName)
 				}
 
+				fmt.Println(fmt.Sprintf("%s:", attributeName))
 				for ok := true; ok; ok = entry != "" {
-					entry = reader.ReadLine(r, fmt.Sprintf("%s", attributeName), []string{}, true, attribute.GetDescription())
+					entry = reader.ReadLine(r, "-", []string{}, true, attribute.GetDescription())
 					if entry == "-h" {
 						// HELP Message
 						logger.INFO(attribute.DisplayHelp())
